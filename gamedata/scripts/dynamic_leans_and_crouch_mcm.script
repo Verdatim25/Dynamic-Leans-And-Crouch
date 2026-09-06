@@ -1,0 +1,53 @@
+local defaults = {
+
+
+}
+
+function get(id)
+	return ui_mcm.get(id) or defaults(id)
+end
+
+
+function on_mcm_load()
+  op = { 
+    id = "dynamic_leans_and_crouch", gr =
+      {  -- options tree goes here
+		{ id = "lean_dlac", text = "dlac_lean_title", sh = true, gr =
+			{
+				{ id = "lean_title", type = "slide", link = "AMCM_Banner.dds", text = "dlac_lean_title", size = {512,50}, spacing = 20 },
+				{ id = "adjustment_mode", type = "list", val = 0, def = "mouse_move", content = {{"mouse_move", "mouse_move"}, {"mouse_scroll", "mouse_scroll"}, {"keybind", "keybind"}} },
+				{ id = "mouse_sens", type = "track", val = 2, def = 0.002 , min = 0, max = 0.02, step = 0.0002},
+				{ id = "mouse_scroll_sens", type = "track", val = 2, def = 0.05 , min = 0, max = 0.5, step = 0.005},
+				{ id = "always_start_at_zero", type = "check", val = 1, def = false },
+				{ id = "use_lean_for_liz_inertia_factor", type = "check", val = 1, def = true },
+				
+				{ id = "lean_adjustment_keybind", type = "slide", text = "dlac_adjustment_keybind_title", size = {512,50}, spacing = 20 },
+				{ id = "adjustment_keybind", type = "key_bind", val = 2, def = DIK_keys.DIK_LMENU, },
+				
+				{ id = "lean_adjustment_keybind_up_down", type = "slide", text = "dlac_adjustment_keybind_up_down_title", size = {512,50}, spacing = 20 },
+				{ id = "adjustment_keybind_left", type = "key_bind", val = 2, def = DIK_keys.DIK_A, },
+				{ id = "adjustment_keybind_right", type = "key_bind", val = 2, def = DIK_keys.DIK_D, },
+				{ id = "t_lean_change", type = "track", val = 2, def = 0.01 , min = 0, max = 0.1, step = 0.001 },
+				{ id = "exit_lean_on_sprint", type = "check", val = 1, def = true, },
+			}
+		},
+		{ id = "crouch_dlac", text = "dlac_crouch_title", sh = true, gr =
+			{
+				{ id = "crouch_title", type = "slide", link = "AMCM_Banner.dds", text = "dlac_crouch_title", size = {512,50}, spacing = 20 },
+				{ id = "adjustment_mode", type = "list", val = 0, def = "mouse_move", content = {{"mouse_move", "mouse_move"}, {"mouse_scroll", "mouse_scroll"}, {"keybind", "keybind"}} },
+				{ id = "mouse_sens", type = "track", val = 2, def = 0.001 , min = 0, max = 0.01, step = 0.0001},
+				{ id = "mouse_scroll_sens", type = "track", val = 2, def = 0.02 , min = 0, max = 0.2, step = 0.002},
+				
+				{ id = "crouch_adjustment_keybind", type = "slide", text = "dlac_adjustment_keybind_title", size = {512,50}, spacing = 20 },
+				{ id = "adjustment_keybind", type = "key_bind", val = 2, def = DIK_keys.DIK_LMENU, },
+				
+				{ id = "crouch_adjustment_keybind_up_down", type = "slide", text = "dlac_adjustment_keybind_up_down_title", size = {512,50}, spacing = 20 },
+				{ id = "adjustment_keybind_up", type = "key_bind", val = 2, def = DIK_keys.DIK_W, },
+				{ id = "adjustment_keybind_down", type = "key_bind", val = 2, def = DIK_keys.DIK_S, },
+				{ id = "t_crouch_change", type = "track", val = 2, def = 0.005 , min = 0, max = 0.05, step = 0.0005 },
+			}
+		},
+      }
+    }
+  return op
+end

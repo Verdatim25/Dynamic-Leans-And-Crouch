@@ -1,0 +1,323 @@
+-- ver, dynamic lean angle and dynamic crouch level
+
+-- some keybind / control ideas
+
+-- tarkov
+-- lean can be controlled by alt + lean key
+-- okay tarkov's system is actually harder to implement than i thought. heres one idea for an implementation
+-- IDEA1: suppress lean keybinds and take over leaning as a whole (destructive but large control)
+--[[
+first we use on_before_key_press to suppress the two lean keybinds. we will take control over leaning
+when rlookout or llookout is pressed normally without alt, we set intensity to 1 and let the keybind through
+
+HOWEVER, if when the left or right move key is pressed, while alt is also held down, then we turn into a different mode, 
+where we use a default lean keybind and manipulate its intensity:
+this is so we can smoothly transition between left and right leans by using the alt keybinds.
+we first need to pick a side to use as our all encompassing lean mode. (either right or left, its arbitrary) and set its intensity to 0
+ill just pick right as our default for now.
+then afterwards we determine whether the lean should increase left or right by pressing A or D, (left / right movement key)
+if alt + A is pressed then move left and decrease intensity
+if alt + D is pressed then move right and increase intensity.
+This should allow us to smoothly go from one lean to the other by holding down alt + the corresponding movement direction key.
+during this whole time the lean mode needs to be active.
+to exit this mode, we should make it so pressing either lean key without alt can lean fully into that direction and after releasing exits our lean mode.
+This means we have to mimic keyboard controls
+
+another question arises then, how do we toggle the leaning state when leaning key + alt is pressed? we suppressed the keybind already, so we either need to continuously 
+hold down the button via level.hold_action(cmd) or set in the console g_lookout_toggle to be true and press the key once if toggle lean is disabled. if its enabled then
+we can just press the key once. i dont think hold action is a good idea if we want to allow the method of escape to be pressing the button, but hm.
+testing required.
+
+
+]]
+
+
+-- crouch by scroll wheel
+
+-- arma
+-- lean can be turned to half of the normal lean value by alt + lean key
+--
+
+-- rainbow 6 raven shield
+-- press key and move mouse to change lean amount
+
+-- maybeee leaning could be entirely controlled by mouse? have a single lean key and move mouse to adjust lean? then i make it so this script
+-- controls all leaning apparatus? sounds interesting
+
+-- okay so im not actually sure how to do this properly but im going to say max mouse movement shoud be ~100 in each direction
+
+-- man im horrible at creating systems
+
+-- okay so i want to have one main function that all our little callbacks will funnel into that will basically control everything
+local max_mouse_speed = 100
+local mouse_movement_lean_coefficient = 0.002
+local mouse_movement_crouch_coefficient = 0.001
+local mouse_scroll_lean_coefficient = 0.05
+local mouse_scroll_crouch_coefficient = 0.02
+
+local leanr_key = bind_to_dik(key_bindings.kR_LOOKOUT)
+local leanl_key = bind_to_dik(key_bindings.kL_LOOKOUT)
+
+local LSHIFT = DIK_keys.DIK_LSHIFT
+local ALT = DIK_keys.DIK_LMENU
+local adjustment_key_lean = DIK_keys.DIK_LMENU
+local adjustment_key_crouch = DIK_keys.DIK_LMENU
+
+local step = 0.05
+lean_value = 1
+local max_lean = 1
+local min_lean = 0
+lean_value_l = 1
+lean_value_r = 1
+
+local crouch_value = 0
+local max_crouch = 0.2
+local min_crouch = -0.2
+
+local use_mouse_movement_lean = true
+local use_mouse_movement_crouch = true
+
+control_modes = {}
+control_modes.mouse_move = 0
+control_modes.mouse_scroll = 1
+control_modes.keybind = 2
+
+local lean_tree_name = "lean_dlac"
+local crouch_tree_name = "crouch_dlac"
+
+local t_lean_change = 0.01
+local t_crouch_change = 0.01
+
+local left_lean_key = bind_to_dik(key_bindings.kL_STRAFE)
+local right_lean_key = bind_to_dik(key_bindings.kR_STRAFE)
+local up_crouch_key = bind_to_dik(key_bindings.kFWD)
+local down_crouch_key = bind_to_dik(key_bindings.kBACK)
+local t_max, t_min = 1, -1
+
+function on_option_change()
+	
+	mouse_movement_lean_coefficient = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/mouse_sens")
+	mouse_movement_crouch_coefficient = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/mouse_sens")
+	mouse_scroll_lean_coefficient = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/mouse_scroll_sens")
+	mouse_scroll_crouch_coefficient = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/mouse_scroll_sens")
+	
+	control_mode_lean = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/adjustment_mode")
+	control_mode_lean = control_modes[control_mode_lean] or 0
+	
+	control_mode_crouch = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/adjustment_mode")
+	control_mode_crouch = control_modes[control_mode_crouch] or 0
+	
+	lean_value_l = (ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/always_start_at_zero") and 0) or lean_value_l
+	lean_value_r = (ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/always_start_at_zero") and 0) or lean_value_r
+	lean_value = (ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/always_start_at_zero") and 0) or lean_value
+	
+	adjustment_key_lean = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/adjustment_keybind") or DIK_keys.DIK_LMENU
+	adjustment_key_crouch = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/adjustment_keybind") or DIK_keys.DIK_LMENU
+	
+	left_lean_key = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/adjustment_keybind_left")
+	right_lean_key = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/adjustment_keybind_right")
+	t_lean_change = ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/t_lean_change")
+	
+	up_crouch_key = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/adjustment_keybind_up")
+	down_crouch_key = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/adjustment_keybind_down")
+	t_crouch_change = ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/t_crouch_change")
+end
+
+function on_mouse_wheel(dir, flags)
+	if not (control_mode_lean == 1) and not (control_mode_crouch == 1) then return end
+	ver_scripting_utils.add_imgui_text("scrollable_lean", "dir is %s", dir)
+	local dir_to_change = (dir == 0 and 1) or (dir == 1 and -1) or 1
+	if (key_state(leanl_key) == 1) and (key_state(adjustment_key_lean) == 1) then
+		if not (control_mode_lean == 1) then return end
+		lean_value_l = lean_value_l - (mouse_scroll_lean_coefficient * dir_to_change)
+		lean_value_l = clamp(lean_value_l, min_lean, max_lean)
+		set_lean_value(lean_value_l)
+		flags.ret_value = false
+	elseif (key_state(leanr_key) == 1) and (key_state(adjustment_key_lean) == 1) then
+		if not (control_mode_lean == 1) then return end
+		lean_value_r = lean_value_r - (mouse_scroll_lean_coefficient * dir_to_change)
+		lean_value_r = clamp(lean_value_r, min_lean, max_lean)
+		set_lean_value(lean_value_r)
+		flags.ret_value = false
+	elseif ((key_state(adjustment_key_crouch) == 1) and IsMoveState("mcCrouch")) then
+		if not (control_mode_crouch == 1) then return end
+		crouch_value = crouch_value - (mouse_scroll_crouch_coefficient * dir_to_change)
+		crouch_value = clamp(crouch_value, min_crouch, max_crouch)
+		set_crouch_value(crouch_value)
+		flags.ret_value = false
+	end
+end
+
+function set_lean_value(value)
+	ver_scripting_utils.add_imgui_text("scrollable_lean_3", "lean_value is %s", value)
+	db.actor:set_actor_lookout_coef(value)
+end
+
+function set_crouch_value(value)
+	ver_scripting_utils.add_imgui_text("scrollable_lean_1", "crouch_value is %s", value)
+	db.actor:set_actor_box_y_offset(1, value)
+end
+
+local max_dx = 0
+local max_dy = 0
+
+function on_before_mouse_move(dx, dy, inputs_disabled, flags)
+	if not (control_mode_lean == 0) and not (control_mode_crouch == 0) then return end
+	ver_scripting_utils.add_imgui_text("scrollable_lean_4", "dx is %s, dy is %s", dx, dy)
+	ver_scripting_utils.add_imgui_text("scrollable_lean_6", "max_dx is %s, max_dy is %s", max_dx, max_dy)
+	if dx > max_dx then
+		max_dx = dx
+	end
+	if dy > max_dy then
+		max_dy = dy
+	end
+	
+	-- positive change in x means rightward movement
+	local mouse_move_left = (dx < 0)
+	local mouse_move_right = (dx > 0)
+	local mouse_move_x_strength = math.abs(dx)
+	
+	-- positive change in y means downward movement
+	local mouse_move_down = (dy > 0)
+	local mouse_move_up = (dy < 0)
+	local mouse_move_y_strength = math.abs(dy)
+	
+	local dir_to_change_lean = (dx > 0 and 1) or (dx < 1 and -1) or 1
+	local dir_to_change_crouch = (dy > 0 and 1) or (dy < 1 and -1) or 1
+	
+	if (key_state(leanl_key) == 1) and (key_state(adjustment_key_lean) == 1) then
+		if not (control_mode_lean == 0) then return end
+		local change = (mouse_movement_lean_coefficient * mouse_move_x_strength)
+		change = ((mouse_move_right and (-change)) or (mouse_move_left and (change))) or 0
+		lean_value_l = lean_value_l + change
+		lean_value_l = clamp(lean_value_l, min_lean, max_lean)
+		set_lean_value(lean_value_l)
+		flags.ret_value = true
+	elseif (key_state(leanr_key) == 1) and (key_state(adjustment_key_lean) == 1) then
+		if not (control_mode_lean == 0) then return end
+		local change = (mouse_movement_lean_coefficient * mouse_move_x_strength)
+		change = ((mouse_move_left and (-change)) or (mouse_move_right and (change))) or 0
+		lean_value_r = lean_value_r + change
+		lean_value_r = clamp(lean_value_r, min_lean, max_lean)
+		set_lean_value(lean_value_r)
+		flags.ret_value = true
+	elseif ((key_state(adjustment_key_crouch) == 1) and IsMoveState("mcCrouch")) then
+		if not (control_mode_crouch == 0) then return end
+		local change = (mouse_movement_crouch_coefficient * mouse_move_y_strength)
+		change = ((mouse_move_down and (-change)) or (mouse_move_up and (change))) or 0
+		crouch_value = crouch_value + change
+		crouch_value = clamp(crouch_value, min_crouch, max_crouch)
+		set_crouch_value(crouch_value)
+		flags.ret_value = true
+	end
+end
+
+-- tarkov time
+local hold_lean_key = false
+function on_before_key_press(key, bind, dis, flags)
+	if not (control_mode_lean == 2) and not (control_mode_crouch == 2) then return end
+	ver_scripting_utils.add_imgui_text("scrollable_lean_7", "key is %s", key)
+	if ((key == leanl_key) or (key == leanr_key)) or (key == bind_to_dik(key_bindings.kSPRINT_TOGGLE)) then
+		if artificial_action then artificial_action = false return end
+		if IsMoveState("mcRLookout") then
+			hold_lean_key = false
+			level.release_action(leanr_key)
+		end
+		lean_value = 1
+		set_lean_value(lean_value)
+	end
+	
+	if ((key == left_lean_key) or (key == right_lean_key)) and (key_state(adjustment_key_lean) == 1) then
+		if not (control_mode_lean == 2) then return end
+		-- suppress
+		flags.ret_value = false
+		
+		-- return if move state is already set to right lean
+		if IsMoveState("mcRLookout") then return end
+		
+		-- this is our "initialisation"
+		
+		-- set intensity to 0
+		lean_value = 0
+		set_lean_value(lean_value)
+		
+		-- trigger lean mode
+		if get_console_cmd(1, "g_lookout_toggle") then
+			artificial_action = true
+			level.press_action(leanr_key)
+		else
+			hold_lean_key = true
+			AddUniqueCall(function()
+				-- returning true stops the repeated calling
+				level.hold_action(leanr_key)
+				if not hold_lean_key then
+					return true
+				end
+				return false
+			end)
+		end
+	end
+end
+
+function on_key_press(key)
+	if (control_mode_lean == 2) then return end
+	if (key == leanl_key) then
+		ver_scripting_utils.add_imgui_text("scrollable_lean_11", "lean_value_l is %s", lean_value_l)
+		lean_value_l = (ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/always_start_at_zero") and 0) or lean_value_l
+		set_lean_value(lean_value_l)
+	elseif (key == leanr_key) then
+		ver_scripting_utils.add_imgui_text("scrollable_lean_12", "lean_value_r is %s", lean_value_r)
+		lean_value_r = (ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/always_start_at_zero") and 0) or lean_value_r
+		set_lean_value(lean_value_r)
+	end
+end
+
+function on_before_key_hold(key,bind,dis,flags)
+	if not (control_mode_lean == 2) and not (control_mode_crouch == 2) then return end
+	ver_scripting_utils.add_imgui_text("scrollable_lean_10", "dik is %s, key_state(adjustment_key_lean) is %s", dik, left_lean_key, key_state(adjustment_key_lean) == 1)
+	ver_scripting_utils.add_imgui_text("scrollable_lean_13", "t_lean_change is %s, t_crouch_change is %s", t_lean_change, t_crouch_change)
+	ver_scripting_utils.add_imgui_text("scrollable_lean_14", "t_lean_change_mcm is %s, t_crouch_change_mcm is %s", ui_mcm.get("dynamic_leans_and_crouch/" .. lean_tree_name .. "/t_lean_change"), ui_mcm.get("dynamic_leans_and_crouch/" .. crouch_tree_name .. "/t_crouch_change"))
+	if ((key == left_lean_key) or (key == right_lean_key)) and (key_state(adjustment_key_lean) == 1) then
+		if not (control_mode_lean == 2) then return end
+		polarity = (((key_state(left_lean_key) == 1) and -1 ) or ((key_state(right_lean_key) == 1) and 1)) or 0
+		lean_value = lean_value + (t_lean_change * polarity)
+		lean_value = clamp(lean_value, t_min, t_max)
+		set_lean_value(lean_value)
+		flags.ret_value = false
+	end
+	
+	if ((key == up_crouch_key) or (key == down_crouch_key)) and (key_state(adjustment_key_crouch) == 1) and (IsMoveState("mcCrouch")) then
+		if not (control_mode_crouch == 2) then return end
+		polarity = (((key_state(up_crouch_key) == 1) and 1 ) or ((key_state(down_crouch_key) == 1) and -1)) or 0
+		crouch_value = crouch_value + (t_crouch_change * polarity)
+		crouch_value = clamp(crouch_value, min_crouch, max_crouch)
+		set_crouch_value(crouch_value)
+		flags.ret_value = false
+	end
+end
+
+function on_key_hold(key)
+end
+
+function on_key_release(dik)
+end
+
+function on_game_start()
+	RegisterScriptCallback("on_mouse_wheel", on_mouse_wheel)
+	RegisterScriptCallback("actor_on_update", actor_on_update)
+	
+	RegisterScriptCallback("on_before_mouse_move", on_before_mouse_move)
+	
+	RegisterScriptCallback("on_before_key_press", on_before_key_press)
+	RegisterScriptCallback("on_key_press", on_key_press)
+	RegisterScriptCallback("on_before_key_hold", on_before_key_hold)
+	RegisterScriptCallback("on_key_hold", on_key_hold)
+	RegisterScriptCallback("on_key_release", on_key_release)
+	
+	RegisterScriptCallback("on_option_change", on_option_change)
+	RegisterScriptCallback("actor_on_first_update", on_option_change)
+end
+
+function actor_on_update()
+	ver_scripting_utils.add_imgui_text("scrollable_lean_5", "key_state(adjustment_key_lean) is %s", key_state(adjustment_key_lean))
+end

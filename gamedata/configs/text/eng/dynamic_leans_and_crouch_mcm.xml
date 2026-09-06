@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<string_table>
+    <string id="ui_mcm_menu_dynamic_leans_and_crouch">
+        <text>Dynamic Leans and Crouch</text>
+    </string>
+	<string id="dlac_lean_title">
+        <text>Leaning</text>
+    </string>
+	<string id="dlac_crouch_title">
+        <text>Crouching</text>
+    </string>
+	<string id="dlac_adjustment_keybind_title">
+        <text>Adjustment Keybind</text>
+    </string>
+	<string id="dlac_adjustment_keybind_up_down_title">
+        <text>Inc. Dec. Adjustment Keybind</text>
+    </string>
+	<string id="dlac_adjustment_keybind_up_down_title_desc">
+        <text>Keybind used to increment up and down the angle / height. Only compatible when adjustment mode is set to keybind.</text>
+    </string>
+	
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_mode">
+        <text>Adjustment Mode</text>
+    </string>
+	<string id="dynamic_leans_and_crouch_lean_dlac_adjustment_mode_lst_mouse_move">
+        <text>Mouse Movement</text>
+    </string>
+	<string id="dynamic_leans_and_crouch_lean_dlac_adjustment_mode_lst_mouse_scroll">
+        <text>Mouse Scroll</text>
+    </string>
+	<string id="dynamic_leans_and_crouch_lean_dlac_adjustment_mode_lst_keybind">
+        <text>Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_mouse_sens">
+        <text>Mouse Movement Sensitivity</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_mouse_sens_desc">
+        <text>Controls how much the lean will change based on your mouse movement, higher values mean you will lean faster for the same mouse movement.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_mouse_scroll_sens">
+        <text>Mouse Scroll Sensitivity</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_mouse_scroll_sens_desc">
+        <text>Controls how much the lean will change based on your mouse scrolling, higher values mean you will lean faster for the same mouse scroll.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_always_start_at_zero">
+        <text>Start Leans at 0 Degrees</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_always_start_at_zero_desc">
+        <text>When first initiating a lean, the lean will be at 0 degrees.</text>
+    </string>
+	
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_use_lean_for_liz_inertia_factor">
+        <text>Lean affects Liz Inertia Anim Power</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_use_lean_for_liz_inertia_factor_desc">
+        <text>When leaning, the extra leaning animation from Liz Inertia will scale depending on the leaning amount. Does not work with keybind leans (for now).</text>
+    </string>
+	
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_keybind">
+        <text>Lean Adjustment Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_keybind_desc">
+        <text>Holding down this key + the additional adjustment mode (mouse movement, scroll or keybind) will start adjusting. Without holding this key no inputs are registered.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_keybind_left">
+        <text>Left Adjustment Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_keybind_left_desc">
+        <text>Holding down this key + the adjustment mode keybind will start leaning left.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_keybind_right">
+        <text>Right Adjustment Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_adjustment_keybind_right_desc">
+        <text>Holding down this key + the adjustment mode keybind will start leaning right.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_t_lean_change">
+        <text>Keybind Adjustment Sensitivity</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_t_lean_change_desc">
+        <text>Controls how much the keybind will change the leaning angle, higher values mean faster lean angle changes.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_exit_lean_on_sprint">
+        <text>Exit Lean On Sprint</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_lean_dlac_exit_lean_on_sprint_desc">
+        <text>If this is on, when you press the sprint key the script will exit the leaning state. (Only applicable to adjustment mode: keybind)</text>
+    </string>
+	
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_mode">
+        <text>Adjustment Mode</text>
+    </string>
+	<string id="dynamic_leans_and_crouch_crouch_dlac_adjustment_mode_lst_mouse_move">
+        <text>Mouse Movement</text>
+    </string>
+	<string id="dynamic_leans_and_crouch_crouch_dlac_adjustment_mode_lst_mouse_scroll">
+        <text>Mouse Scroll</text>
+    </string>
+	<string id="dynamic_leans_and_crouch_crouch_dlac_adjustment_mode_lst_keybind">
+        <text>Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_mouse_sens">
+        <text>Mouse Movement Sensitivity</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_mouse_sens_desc">
+        <text>Controls how much the crouch will change based on your mouse movement, higher values mean you will crouch faster for the same mouse movement.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_mouse_scroll_sens">
+        <text>Mouse Scroll Sensitivity</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_mouse_scroll_sens_desc">
+        <text>Controls how much the crouch will change based on your mouse scroll, higher values mean you will crouch faster for the same mouse scroll.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_keybind">
+        <text>Crouch Adjustment Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_keybind_desc">
+        <text>Holding down this key + the additional adjustment mode (mouse movement, scroll or keybind) will start adjusting. Without holding this key no inputs are registered.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_keybind_up">
+        <text>Up Adjustment Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_keybind_up_desc">
+        <text>Holding down this key + the adjustment mode keybind will start crouching higher.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_keybind_down">
+        <text>Down Adjustment Keybind</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_adjustment_keybind_down_desc">
+        <text>Holding down this key + the adjustment mode keybind will start crouching lower.</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_t_crouch_change">
+        <text>Keybind Adjustment Sensitivity</text>
+    </string>
+	<string id="ui_mcm_dynamic_leans_and_crouch_crouch_dlac_t_crouch_change_desc">
+        <text>Controls how much the keybind will change the crouch level, higher values mean faster crouch level changes.</text>
+    </string>
+	
+</string_table>
